@@ -4,7 +4,7 @@ import time
 import timeit
 import psycopg2
 import logging
-import myanimelist_api_functions.py
+import myanimelist_api_functions
 import pandas as pd
 from itertools import count
 from datetime import datetime

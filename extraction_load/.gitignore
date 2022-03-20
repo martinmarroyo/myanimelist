@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Ignore batch and log files
+*.bat
+*.log
+
 # Distribution / packaging
 .Python
 build/
