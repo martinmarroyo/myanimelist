@@ -15,9 +15,6 @@ CREATE TABLE IF NOT EXISTS anime.all_anime
 
 TABLESPACE pg_default;
 
-ALTER TABLE anime.all_anime
-    OWNER to tmjsqueutymrpo;
-
 COMMENT ON TABLE anime.all_anime
     IS 'All suitable for work anime titles from My Anime List';
 
