@@ -18,8 +18,9 @@ def get_page_count(url: str, session: requests.Session):
     for the all anime endpoint
     """
     initial_response = session.get(url)
-    total_pages = json.loads(initial_response.text)["pagination"]["last_visible_page"]
-    return total_pages
+    if initial_response.status_code == 200:
+        total_pages = int(json.loads(initial_response.text)["pagination"]["last_visible_page"])
+        return total_pages
 
 
 def generate_anime_list(session: requests.Session, page_count: int = 0):

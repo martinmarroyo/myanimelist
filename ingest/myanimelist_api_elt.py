@@ -16,7 +16,7 @@ from myanimelist_api_functions import (
     get_anime_ids,
     insert_anime_scores_and_stats,
     refresh_views,
-    clear_staging
+    clear_staging,
 )
 
 
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         level=logging.INFO,
         filename="animelistapi.log",
         encoding="utf-8",
-        format="%(asctime)s:%(levelname)s:%(message)s"
+        format="%(asctime)s:%(levelname)s:%(message)s",
     )
 
     logging.info("Starting...")
@@ -45,28 +45,29 @@ if __name__ == "__main__":
     )
     try:
 
-        # Get connection
-        connection = connection_pool.getconn()
-
         # Get data from API requests and insert into DB
         with requests.Session() as session:
 
             # Get all the anime updates
+            list_connection = connection_pool.getconn()
             start_anime_list = time.time()
             URL = "https://api.jikan.moe/v4/anime?sfw=true"
             total_pages = get_page_count(URL, session)
             anime_list = generate_anime_list(session, total_pages)
-            add_anime(anime_list, connection)
-            connection.commit()
+            add_anime(anime_list, list_connection)
+            list_connection.commit()
+            list_connection.close()
             end_anime_list = time.time()
             logging.info("Anime list ETL complete!")
             logging.info(f"Elapsed time was {end_anime_list-start_anime_list} seconds")
 
             # Get all the anime stat updates
+            stat_connection = connection_pool.getconn()
             start_anime_stats = time.time()
-            anime_ids = get_anime_ids(connection)
-            upload_anime_stats(anime_ids, connection, session)
-            connection.commit()
+            anime_ids = get_anime_ids(stat_connection)
+            upload_anime_stats(anime_ids, stat_connection, session)
+            stat_connection.commit()
+            stat_connection.close()
             end_anime_stats = time.time()
             logging.info("Anime stats upload complete!")
             logging.info(
@@ -74,15 +75,18 @@ if __name__ == "__main__":
             )
 
         # Commit all changes and clean up staging
-        insert_anime_scores_and_stats(connection)
-        refresh_views(connection)
-        clear_staging(connection)
-        connection.commit()
+        cleanup_connection = connection_pool.getconn()
+        insert_anime_scores_and_stats(cleanup_connection)
+        refresh_views(cleanup_connection)
+        clear_staging(cleanup_connection)
+        cleanup_connection.commit()
+        cleanup_connection.close()
     except psycopg2.DatabaseError as err:
         logging.exception("A database error occurred")
 
     finally:
-        connection.close()
+        # Close the connection pool
+        connection_pool.closeall()
 
     end = time.time()
     logging.info(f"Done! Elapsed time was {end-start} seconds")
