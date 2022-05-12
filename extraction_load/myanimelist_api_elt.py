@@ -6,6 +6,7 @@ import time
 import logging
 import requests
 import psycopg2
+import psycopg2.pool
 from dotenv import dotenv_values
 from myanimelist_api_functions import (
     get_page_count,

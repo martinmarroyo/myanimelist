@@ -4,7 +4,8 @@ statistics from My Anime List using the
 Jikkan API
 """
 import json
-from datetime import datetime,time
+import time
+from datetime import datetime
 from itertools import count
 import requests
 import psycopg2
