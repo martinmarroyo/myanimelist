@@ -1,17 +1,30 @@
 import json
 import time
+import asyncio
+import aiohttp
+import psycopg2
 import requests
 import pandas as pd
 
-def get_anime_stats(session: requests.Session, anime_id: int):
-    """
-    Returns the stats for the anime
-    associated with the given anime_id
-    """
-    url = f"https://api.jikan.moe/v4/anime/{anime_id}/statistics"
-    resp = session.get(url)
-    if resp.status_code == 200:
-        return json.loads(resp.text)
+async def get_stats(session: aiohttp.ClientSession, url):
+    async with session.get(url) as response:
+        if response.status == 200:
+            stats = await response.json()
+            return stats
+        # We didn't get data - check the status
+        return response.status
+        
+
+async def get_anime_stats(anime_id: list):
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for id in anime_id:
+            url = f"https://api.jikan.moe/v4/anime/{id}/statistics"
+            task = asyncio.ensure_future(get_stats(session, url))
+            tasks.append(task)
+            await asyncio.sleep(1)
+        results = await asyncio.gather(*tasks)
+        return results
 
 
 def get_anime_ids(connection: psycopg2.connect):
@@ -26,6 +39,3 @@ def get_anime_ids(connection: psycopg2.connect):
     """
     ids = pd.read_sql(query, connection)
     return ids
-
-
-
