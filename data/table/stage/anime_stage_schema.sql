@@ -1,1 +1,0 @@
-CREATE SCHEMA anime_stage;
