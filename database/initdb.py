@@ -108,7 +108,7 @@ def initialize_views(connection: psycopg2.extensions.connection) -> None:
         raise
 
 
-def initdb(config):
+def initdb(config: dict) -> None:
     """
     A wrapper function that runs the database initialization process.
     This is a destructive process, as each time it runs it will delete
