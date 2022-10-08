@@ -4,3 +4,4 @@ python-dotenv
 requests
 black
 pylint
+aiohttp

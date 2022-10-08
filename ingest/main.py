@@ -8,7 +8,7 @@ import requests
 import psycopg2
 import psycopg2.pool
 from dotenv import dotenv_values
-from myanimelist_api_functions import (
+from utils.myanimelist import (
     get_page_count,
     generate_anime_list,
     add_anime,
