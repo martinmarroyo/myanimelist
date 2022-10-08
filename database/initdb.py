@@ -1,5 +1,6 @@
 """A script to initialize the MyAnimeList database"""
 import os
+from sqlite3 import DatabaseError, OperationalError, ProgrammingError
 import time
 import psycopg2
 import logging
@@ -15,15 +16,19 @@ config = dotenv_values('.env')
 
 def create_schemas(connection: psycopg2.extensions.connection) -> None:
     logging.info("Creating schemas...")
-    with open('create_schemas.sql', 'r', encoding='utf-8') as query:
-        query = query.read()
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(query)
-            logging.info("Schemas created successfully!")
-        except:
-            logging.exception("Issue occurred while creating schemas")
-            raise
+    try:
+        with open('create_schemas.sql', 'r', encoding='utf-8') as query:
+            query = query.read()
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(query)
+                logging.info("Schemas created successfully!")
+            except (DatabaseError, OperationalError):
+                logging.exception("Issue occurred while creating schemas:\n")
+                raise
+    except FileNotFoundError:
+        logging.exception("Cannot find the `create_schemas.sql` file. Is it in this directory?")
+        raise
 
 
 def create_staging(connection: psycopg2.extensions.connection) -> None:
@@ -38,11 +43,11 @@ def create_staging(connection: psycopg2.extensions.connection) -> None:
                     query = query.read()
                     try:
                         cursor.execute(query)
-                    except:
-                        logging.exception(f"Error occurred while running script:\n{query}")
+                    except (DatabaseError, OperationalError):
+                        logging.exception(f"Error occurred while running script:\n{query}\n")
                         raise
         logging.info("Staging created successfully!")
-    except:
+    except (DatabaseError, OperationalError):
         logging.exception("Error connecting to database")
         raise
 
@@ -59,11 +64,11 @@ def create_production(connection: psycopg2.extensions.connection) -> None:
                     query = query.read()
                     try:
                         cursor.execute(query)
-                    except:
+                    except (DatabaseError, OperationalError):
                         logging.exception(f"Error occurred while running script:\n{query}")
                         raise
             logging.info("Production created successfully!")
-    except:
+    except (DatabaseError, OperationalError):
         logging.exception("Error connecting to database")
         raise
 
@@ -79,23 +84,27 @@ def initialize_views(connection: psycopg2.extensions.connection) -> None:
                     query = query.read()
                     try:
                         cursor.execute(query)
-                    except:
+                    except (DatabaseError, OperationalError):
                         logging.exception(f"Error occurred while running script:\n{query}")
                         raise
             logging.info("Views created successfully!")
-    except:
+    except (DatabaseError, OperationalError):
         logging.exception("Error connecting to database")
         raise
 
 
 def initdb(config):
     logging.info("Initializing database...")
-    with psycopg2.connect(**config) as connection:
-        create_schemas(connection)
-        create_staging(connection)
-        create_production(connection)
-        initialize_views(connection)
-    logging.info("Database initialization complete!")
+    try:
+        with psycopg2.connect(**config) as connection:
+            create_schemas(connection)
+            create_staging(connection)
+            create_production(connection)
+            initialize_views(connection)
+        logging.info("Database initialization complete!")
+    except (ProgrammingError, DatabaseError, OperationalError):
+        logging.exception("Error connecting to the database:\n")
+        raise
 
 
 if __name__ == '__main__':
@@ -104,3 +113,4 @@ if __name__ == '__main__':
     end = time.time()
     duration = round(end-start, 2)
     logging.info(f"Total duration: {duration} second(s)")
+    
