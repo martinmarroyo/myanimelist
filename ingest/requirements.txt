@@ -5,3 +5,4 @@ requests
 black
 pylint
 aiohttp
+sqlalchemy[asyncio]

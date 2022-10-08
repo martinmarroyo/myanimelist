@@ -8,7 +8,7 @@ import requests
 import psycopg2
 import psycopg2.pool
 from dotenv import dotenv_values
-from utils.myanimelist import (
+from utils.anime import (
     get_page_count,
     generate_anime_list,
     add_anime,
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         filename="animelistapi.log",
         encoding="utf-8",
         format="%(asctime)s:%(levelname)s:%(message)s",
-    )
+    ) 
 
     logging.info("Starting...")
     start = time.time()
