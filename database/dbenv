@@ -1,0 +1,5 @@
+dbname=myanimelist
+user=admin
+password=myanimelist
+host=localhost
+port=55432
