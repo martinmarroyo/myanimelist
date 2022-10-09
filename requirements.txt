@@ -5,4 +5,8 @@ requests
 black
 pylint
 aiohttp
+asyncpg
+pyyaml
+minio
+loguru
 sqlalchemy[asyncio]

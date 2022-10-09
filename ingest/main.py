@@ -1,6 +1,8 @@
 """"
 A script for extracting data from the Jikkan anime
-API and loading it to Postgres
+API and loading it to Postgres. This is a long-running
+batch process that updates all of the anime data along
+with the newest statistics for each anime.
 """
 import time
 import logging
@@ -8,6 +10,7 @@ import requests
 import psycopg2
 import psycopg2.pool
 from dotenv import dotenv_values
+from sqlalchemy.ext.asyncio import create_async_engine
 from utils.anime import (
     get_page_count,
     generate_anime_list,

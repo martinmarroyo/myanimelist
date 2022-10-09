@@ -1,0 +1,9 @@
+schema:
+  - mal_id
+  - title
+  - status
+  - rating
+  - score
+  - favorites
+  - airing
+  - aired

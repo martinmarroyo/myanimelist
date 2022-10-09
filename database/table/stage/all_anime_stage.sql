@@ -4,10 +4,10 @@ CREATE TABLE IF NOT EXISTS anime_stage.all_anime
     title text COLLATE pg_catalog."default",
     status text COLLATE pg_catalog."default",
     rating text COLLATE pg_catalog."default",
-    score double precision,
-    favorites bigint,
+    score float,
+    favorites int,
     load_date timestamp without time zone,
     airing boolean,
-    aired_from timestamp without time zone,
-    aired_to timestamp without time zone
+    aired_from text,
+    aired_to text
 );

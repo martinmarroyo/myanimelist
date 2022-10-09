@@ -1,0 +1,52 @@
+version: "3"
+services:
+# Ingestion service
+  ingestion:
+    build: .
+    container_name: ingest
+    networks:
+        - local
+# Storage Layer for staging data
+  datalake:
+    image: minio/minio
+    container_name: datalake
+    ports:
+        - "9999:9000"
+        - "9991:9001"
+    volumes:
+        - datalake-storage:/data
+    env_file:
+        - environment
+    command: server --console-address ":9001" /data
+# Relational Database/Data Warehouse
+  database:
+    image: postgres:13
+    container_name: warehouse
+    env_file:
+        - environment
+    volumes:
+        - myanimelist-data:/var/lib/postgresql/data
+    restart: always
+    ports:
+        - "55432:5432"
+    networks:
+        - local
+  # Client Application for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:6.10
+    container_name: pgadmin4
+    restart: always
+    env_file:
+        - environment
+    volumes:
+        - myanimelist-pgadmin-data:/var/lib/pgadmin
+    ports:
+        - "8090:80"
+    networks:
+        - local
+volumes:
+  myanimelist-data:
+  myanimelist-pgadmin-data:
+  datalake-storage:
+networks:
+  local:
