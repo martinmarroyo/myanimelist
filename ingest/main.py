@@ -47,7 +47,7 @@ def command_validator(commands: list) -> int:
 
 
 def main():
-    logger.info("Initializing")
+    logger.info("Initializing...")
     start = time.time()
     with open('utils/config.yaml', 'r', encoding='utf-8') as f:
         data_config = yaml.load(f, Loader=SafeLoader)
@@ -63,7 +63,7 @@ def main():
     # TODO: Write function to handle getting latest data from buckets
     input_file = "all_anime/raw/year=2022/month=10/day=10/all_anime.json"
     # Run each process in order and display a progress bar
-    logger.info("Starting process...")
+    logger.info("Starting ingestion...")
     for process in tqdm(range(2)):
         if process == 0:
             # Upload anime info 
@@ -76,7 +76,7 @@ def main():
             animestats.upload_anime_stats(client, bucket, input_file, testing=testing, sample=sample)
             logger.info("Anime stats uploaded!")
     
-    logger.info("Process complete!")
+    logger.info("Ingestion complete!")
     end = time.time()
     duration = round(end - start, 2)
     logger.info(f"Elapsed time: {duration} second(s)")
