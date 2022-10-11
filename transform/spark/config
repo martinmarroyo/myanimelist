@@ -1,0 +1,5 @@
+# Token for accessing Jupyter Server
+JUPYTER_TOKEN=spudi
+############### Credentials (optional) ################################################
+AWS_ACCESS_KEY_ID=your_access_key_id_here
+AWS_SECRET_ACCESS_KEY=your_secret_access_key_here

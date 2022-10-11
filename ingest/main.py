@@ -31,7 +31,7 @@ if __name__ == "__main__":
         filename="animelistapi.log",
         encoding="utf-8",
         format="%(asctime)s:%(levelname)s:%(message)s",
-    ) 
+    )
 
     logging.info("Starting...")
     start = time.time()

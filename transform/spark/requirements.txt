@@ -1,0 +1,11 @@
+# Requirements for base environment
+pyspark==3.2.1 # Matches the version used in docker image
+jupyter
+notebook
+pandas
+matplotlib
+awswrangler
+findspark
+kafka-python
+loguru
+pyyaml

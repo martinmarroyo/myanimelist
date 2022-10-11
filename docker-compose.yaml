@@ -18,6 +18,16 @@ services:
     env_file:
         - environment
     command: server --console-address ":9001" /data
+    networks:
+        - local
+# Spark worker for transformation/delta lake
+  spark:
+    build:
+        context: ./transform/spark
+        dockerfile: Dockerfile
+    container_name: spark
+    networks:
+        - local
 # Relational Database/Data Warehouse
   database:
     image: postgres:13
@@ -31,7 +41,7 @@ services:
         - "55432:5432"
     networks:
         - local
-  # Client Application for Database Management
+# Client Application for Database Management
   pgadmin:
     image: dpage/pgadmin4:6.10
     container_name: pgadmin4

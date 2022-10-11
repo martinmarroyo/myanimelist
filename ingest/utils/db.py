@@ -3,18 +3,22 @@ import psycopg2
 from loguru import logger
 from sqlalchemy import text
 from psycopg2.errors import (
-    OperationalError, InterfaceError, DatabaseError, ProgrammingError
+    OperationalError,
+    InterfaceError,
+    DatabaseError,
+    ProgrammingError,
 )
 
+
 async def ingest(data, engine) -> None:
-    """"
+    """ "
     Ingests anime data from the Jikkan MyAnimeList API & writes it
     to a Postgres Database
     """
     logger.info("Starting ingestion...")
     try:
         async with engine.begin() as conn:
-            
+
             try:
                 query = """
                     INSERT INTO anime_stage.all_anime
@@ -27,7 +31,7 @@ async def ingest(data, engine) -> None:
                 await conn.execute(text(query), parameters=data)
             except (TypeError, OperationalError, InterfaceError):
                 logger.exception("Error occurred during query...")
-                   
+
     except (DatabaseError, OperationalError, ProgrammingError):
         logger.exception("Error occurred while connecting to the database")
     logger.info("Written to database!")
