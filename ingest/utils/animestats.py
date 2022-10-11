@@ -6,7 +6,7 @@ import asyncio
 import aiohttp
 from dotenv import dotenv_values
 from loguru import logger
-from writer import access_storage, read_from_storage, write_to_storage
+from utils.writer import access_storage, read_from_storage, write_to_storage
 
 
 async def get_stats(session: aiohttp.ClientSession, url):

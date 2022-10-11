@@ -1,95 +1,87 @@
 """"
 A script for extracting data from the Jikkan anime
-API and loading it to Postgres. This is a long-running
+API and loading it to cloud storage. This is a long-running
 batch process that updates all of the anime data along
 with the newest statistics for each anime.
 """
+import os
+import sys
 import time
-import logging
-import requests
-import psycopg2
-import psycopg2.pool
+import yaml
+from yaml.loader import SafeLoader
 from dotenv import dotenv_values
-from sqlalchemy.ext.asyncio import create_async_engine
-from utils.anime import (
-    get_page_count,
-    generate_anime_list,
-    add_anime,
-    upload_anime_stats,
-    get_anime_ids,
-    insert_anime_scores_and_stats,
-    refresh_views,
-    clear_staging,
-)
+from loguru import logger
+from tqdm import tqdm
+from utils import anime, animestats, writer
 
+def command_validator(commands: list) -> int:
+    """
+    Takes in a list of commands from stdin and
+    determines whether or not to perform a test
+    run
 
-if __name__ == "__main__":
-
-    conf = dotenv_values(".env")
-    logging.basicConfig(
-        level=logging.INFO,
-        filename="animelistapi.log",
-        encoding="utf-8",
-        format="%(asctime)s:%(levelname)s:%(message)s",
-    )
-
-    logging.info("Starting...")
-    start = time.time()
-
-    # Set up connections to database and API
-    connection_pool = psycopg2.pool.SimpleConnectionPool(
-        1,
-        5,
-        user=conf["USER"],
-        password=conf["PASS"],
-        host=conf["HOST"],
-        port=conf["PORT"],
-        database=conf["DB_NAME"],
-    )
-    try:
-
-        # Get data from API requests and insert into DB
-        with requests.Session() as session:
-
-            # Get all the anime updates
-            list_connection = connection_pool.getconn()
-            start_anime_list = time.time()
-            URL = "https://api.jikan.moe/v4/anime?sfw=true"
-            total_pages = get_page_count(URL, session)
-            anime_list = generate_anime_list(session, total_pages)
-            add_anime(anime_list, list_connection)
-            list_connection.commit()
-            list_connection.close()
-            end_anime_list = time.time()
-            logging.info("Anime list ETL complete!")
-            logging.info(f"Elapsed time was {end_anime_list-start_anime_list} seconds")
-
-            # Get all the anime stat updates
-            stat_connection = connection_pool.getconn()
-            start_anime_stats = time.time()
-            anime_ids = get_anime_ids(stat_connection)
-            upload_anime_stats(anime_ids, stat_connection, session)
-            stat_connection.commit()
-            stat_connection.close()
-            end_anime_stats = time.time()
-            logging.info("Anime stats upload complete!")
-            logging.info(
-                f"Elapsed time was {end_anime_stats-start_anime_stats} seconds"
+    :param commands: A list of commands from stdinput
+    """
+    page_count = None
+    command_str = " ".join(commands)
+    # Handle trial runs
+    if len(commands) == 3:
+        tests = [
+            commands[0] == "sample",
+            commands[1] == "-n",
+            commands[2].isnumeric(),
+        ]
+        valid_cmd = all(tests)
+        if not valid_cmd:
+            logger.info(
+                f"{command_str} was an invalid command."
+                "Continuing with default settings..."
+            )
+        else:
+            page_count = int(commands[2])
+            logger.info(
+                f"Performing test run using a sample size of {page_count * 25} anime"
             )
 
-        # Commit all changes and clean up staging
-        cleanup_connection = connection_pool.getconn()
-        insert_anime_scores_and_stats(cleanup_connection)
-        refresh_views(cleanup_connection)
-        clear_staging(cleanup_connection)
-        cleanup_connection.commit()
-        cleanup_connection.close()
-    except psycopg2.DatabaseError as err:
-        logging.exception("A database error occurred")
+    return page_count
 
-    finally:
-        # Close the connection pool
-        connection_pool.closeall()
 
+def main():
+    logger.info("Initializing")
+    start = time.time()
+    with open('utils/config.yaml', 'r', encoding='utf-8') as f:
+        data_config = yaml.load(f, Loader=SafeLoader)
+    config = dotenv_values('.env')
+    commands = sys.argv[1:]
+    # Determine the number of pages to collect from the anime endpoint
+    page_count = command_validator(commands)
+    testing = True if page_count is not None else False
+    sample = page_count * 25 if page_count is not None else 0
+    # Start a connection to the storage client
+    client = writer.access_storage(config)
+    bucket = "myanimelist"
+    # TODO: Write function to handle getting latest data from buckets
+    input_file = "all_anime/raw/year=2022/month=10/day=10/all_anime.json"
+    # Run each process in order and display a progress bar
+    logger.info("Starting process...")
+    for process in tqdm(range(2)):
+        if process == 0:
+            # Upload anime info 
+            logger.info("Uploading anime info...")
+            anime.upload_all_anime(client, data_config['schema'], page_count)
+            logger.info("Anime info has been uploaded to storage!")
+        elif process == 1:
+            # Upload anime stats
+            logger.info("Uploading anime stats...")
+            animestats.upload_anime_stats(client, bucket, input_file, testing=testing, sample=sample)
+            logger.info("Anime stats uploaded!")
+    
+    logger.info("Process complete!")
     end = time.time()
-    logging.info(f"Done! Elapsed time was {end-start} seconds")
+    duration = round(end - start, 2)
+    logger.info(f"Elapsed time: {duration} second(s)")
+    os._exit(0)
+    
+
+if __name__ == '__main__':
+    main()

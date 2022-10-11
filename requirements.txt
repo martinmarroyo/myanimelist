@@ -9,4 +9,5 @@ asyncpg
 pyyaml
 minio
 loguru
+tqdm
 sqlalchemy[asyncio]

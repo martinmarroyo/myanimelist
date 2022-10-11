@@ -13,7 +13,7 @@ import asyncio
 import aiohttp
 import requests
 from loguru import logger
-from writer import access_storage, write_to_storage
+from utils.writer import access_storage, write_to_storage
 from dotenv import dotenv_values
 from yaml.loader import SafeLoader
 from sqlalchemy.ext.asyncio import create_async_engine
