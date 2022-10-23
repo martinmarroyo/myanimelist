@@ -8,4 +8,4 @@ awswrangler
 findspark
 kafka-python
 loguru
-pyyaml
+flatdict

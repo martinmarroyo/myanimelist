@@ -10,4 +10,5 @@ pyyaml
 minio
 loguru
 tqdm
+boto3
 sqlalchemy[asyncio]

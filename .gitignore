@@ -133,3 +133,5 @@ dmypy.json
 
 # Ignore ingest environment
 ingest/myanimelist
+# Ignore notebooks
+*.ipynb

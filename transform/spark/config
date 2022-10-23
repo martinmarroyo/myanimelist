@@ -1,5 +1,6 @@
 # Token for accessing Jupyter Server
 JUPYTER_TOKEN=spudi
 ############### Credentials (optional) ################################################
-AWS_ACCESS_KEY_ID=your_access_key_id_here
-AWS_SECRET_ACCESS_KEY=your_secret_access_key_here
+AWS_ACCESS_KEY_ID=admin
+AWS_SECRET_ACCESS_KEY=SuperSecurePassword2022!
+ENDPOINT_URL=http://datalake:9000

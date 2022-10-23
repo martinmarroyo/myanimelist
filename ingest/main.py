@@ -2,7 +2,7 @@
 A script for extracting data from the Jikkan anime
 API and loading it to cloud storage. This is a long-running
 batch process that updates all of the anime data along
-with the newest statistics for each anime.
+with the latest statistics for each anime.
 """
 import os
 import sys
@@ -12,7 +12,7 @@ from yaml.loader import SafeLoader
 from dotenv import dotenv_values
 from loguru import logger
 from tqdm import tqdm
-from utils import anime, animestats, writer
+from utils import anime, animestats, storage
 
 def command_validator(commands: list) -> int:
     """
@@ -58,17 +58,18 @@ def main():
     testing = True if page_count is not None else False
     sample = page_count * 25 if page_count is not None else 0
     # Start a connection to the storage client
-    client = writer.access_storage(config)
+    client = storage.access_storage(config)
     bucket = "myanimelist"
-    # TODO: Write function to handle getting latest data from buckets
-    input_file = "all_anime/raw/year=2022/month=10/day=10/all_anime.json"
     # Run each process in order and display a progress bar
     logger.info("Starting ingestion...")
     for process in tqdm(range(2)):
         if process == 0:
             # Upload anime info 
             logger.info("Uploading anime info...")
-            anime.upload_all_anime(client, data_config['schema'], page_count)
+            err, input_file = anime.upload_all_anime(client, data_config['schema'], page_count)
+            if err is not None:
+                logger.info(f"Error occurred while uploading anime info {repr(err)}")
+                os._exit(1)
             logger.info("Anime info has been uploaded to storage!")
         elif process == 1:
             # Upload anime stats
@@ -80,7 +81,6 @@ def main():
     end = time.time()
     duration = round(end - start, 2)
     logger.info(f"Elapsed time: {duration} second(s)")
-    os._exit(0)
     
 
 if __name__ == '__main__':

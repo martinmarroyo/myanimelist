@@ -26,6 +26,12 @@ services:
         context: ./transform/spark
         dockerfile: Dockerfile
     container_name: spark
+    ports:
+      - "8899:8888"
+    env_file:
+      - ./transform/spark/config
+    volumes:
+      - ./transform:/opt/bitnami/spark/localdevelopment
     networks:
         - local
 # Relational Database/Data Warehouse
